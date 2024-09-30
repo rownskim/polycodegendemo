@@ -45,10 +45,77 @@
 			<artifactId>spring-boot-starter-test</artifactId>
 			<scope>test</scope>
 		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-web</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-validation</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.openapitools</groupId>
+			<artifactId>jackson-databind-nullable</artifactId>
+			<version>0.2.6</version>
+		</dependency>
 	</dependencies>
 
 	<build>
+		<pluginManagement>
+			<plugins>
+				<plugin>
+					<groupId>org.openapitools</groupId>
+					<artifactId>openapi-generator-maven-plugin</artifactId>
+					<version>7.4.0</version>
+					<configuration>
+						<generatorName>spring</generatorName>
+						<generateApiDocumentation>false</generateApiDocumentation>
+						<generateModelTests>false</generateModelTests>
+						<generateApiTests>false</generateApiTests>
+						<skipIfSpecIsUnchanged>true</skipIfSpecIsUnchanged>
+						<configOptions>
+							<modelPackage>com.smartbear.swaggerhub.portal.polycodegendemo.apimodel.generated.model</modelPackage>
+							<apiPackage>com.smartbear.swaggerhub.portal.polycodegendemo.apimodel.generated.controller</apiPackage>
+							<configPackage>com.smartbear.swaggerhub.portal.polycodegendemo.apimodel.generated.config</configPackage>
+							<documentationProvider>source</documentationProvider>
+							<interfaceOnly>true</interfaceOnly>
+							<useJakartaEe>true</useJakartaEe>
+							<useBeanValidation>true</useBeanValidation>
+							<useSpringBoot3>false</useSpringBoot3>
+							<useTags>true</useTags>
+							<skipDefaultInterface>true</skipDefaultInterface>
+							<performBeanValidation>true</performBeanValidation>
+							<!-- I don't totally understand why, but if it's "false" it generates extra @JsonSubTypes annotations
+                              which mess with serialization. -->
+							<legacyDiscriminatorBehavior>true</legacyDiscriminatorBehavior>
+							<dateLibrary>java8</dateLibrary>
+							<!-- Note: This only works when skipDefaultInterfaces is false -->
+							<unhandledException>true</unhandledException>
+<!--							<additionalModelTypeAnnotations>-->
+<!--								@com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL)-->
+<!--							</additionalModelTypeAnnotations>-->
+						</configOptions>
+					</configuration>
+				</plugin>
+			</plugins>
+		</pluginManagement>
+
 		<plugins>
+			<plugin>
+				<groupId>org.openapitools</groupId>
+				<artifactId>openapi-generator-maven-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>polymorphic</id>
+						<goals>
+							<goal>generate</goal>
+						</goals>
+						<configuration>
+						<inputSpec>${project.basedir}/polydocs/poly.yaml</inputSpec>
+					</configuration>
+					</execution>
+				</executions>
+			</plugin>
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>

@@ -1,0 +1,247 @@
+openapi: 3.0.3
+info:
+  title: Products API
+  version: latest
+tags:
+  - name: PolyTest
+    description: Polymorphic endpoints
+paths:
+  '/test':
+    post:
+      tags:
+        - 'Content :: Table of Contents'
+      summary: Add table of contents entry
+      description: |
+        Add a new entry to the table of contents either by supplying the full details 
+        or by providing the identifier of an existing resource to copy the content from.
+        `Markdown` entries will also create an empty document and return the `documentId`, which can
+        then be used to update the document contents.
+      operationId: createTableOfContentsEntry
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+                $ref: '#/components/schemas/BaseTableOfContentsItem'
+      responses:
+        '201':
+          description: Successfully created entry.
+          headers:
+            Location:
+              schema:
+                type: string
+              description: The location of the newly created resource.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  helloMsg:
+                    type: string
+                    description: Confirm which entry was created.
+        '400':
+          $ref: "common/base.yaml#/components/responses/BadRequest"
+        '401':
+          $ref: "common/base.yaml#/components/responses/AuthRequired"
+        '403':
+          $ref: "common/base.yaml#/components/responses/Forbidden"
+        '404':
+          $ref: "common/base.yaml#/components/responses/NotFound"
+        '409':
+          description: An entry with the given slug already exists
+          content:
+            application/problem+json:
+              schema:
+                $ref: "common/base.yaml#/components/schemas/Error"
+        '413':
+          $ref: "common/base.yaml#/components/responses/ContentTooLarge"
+        '503':
+          $ref: "common/base.yaml#/components/responses/PortalDisabled"
+
+
+components:
+  schemas:
+    BaseTableOfContentsItem:
+      type: object
+      discriminator:
+        propertyName: mode  # Key discriminator to 'mode' property
+        mapping:
+          new: '#/components/schemas/TableOfContentsItemNew'
+          copy: '#/components/schemas/TableOfContentsItemCopy'
+      oneOf:
+        - $ref: '#/components/schemas/TableOfContentsItemNew'
+        - $ref: '#/components/schemas/TableOfContentsItemCopy'
+    TableOfContentsItemNew:
+      type: object
+      required:
+        - title
+        - content
+      properties:
+        mode:
+          type: string
+          default: 'new'
+        id:
+          type: string
+          description: The identifier of the table of contents item.
+          format: uuid
+          readOnly: true
+        slug:
+          type: string
+          description: >-
+            The URL slug for the item. If the slug is not specified, it will be
+            generated from the title field.
+          example: getting-started
+          pattern: ^[a-z0-9]+([-_.]([a-z0-9]+))*$
+          minLength: 3
+          maxLength: 260
+        title:
+          type: string
+          description: The title in the table of contents.
+          example: Getting Started
+          minLength: 3
+          maxLength: 255
+        order:
+          type: integer
+          description: >
+            The order of the item in the table of contents, starting from 0.
+            
+            If not specified when creating an entry, it will be added to the end
+            of the list.
+          example: 1
+          minimum: 0
+          writeOnly: true
+        parentId:
+          type: string
+          format: uuid
+          description: >-
+            The identifier of the parent table of contents item. If not
+            specified the item will be added at the end of the root level of the
+            tree.
+          writeOnly: true
+        children:
+          type: array
+          items:
+            $ref: '#/components/schemas/TableOfContentsItem'
+          readOnly: true
+        swaggerhubApi:
+          type: object
+          readOnly: true
+          properties:
+            private:
+              type: boolean
+              description: Indicates if the API is private in SwaggerHub.
+        content:
+#          $ref: '#/components/schemas/ContentReference'
+            type: string
+            description: The content of the table of contents item.
+    TableOfContentsItemCopy:
+      type: object
+      properties:
+        mode:
+          type: string
+          default: 'copy'
+        tableOfContentsId:
+          type: string
+          format: uuid
+          description: The identifier of the table of contents to copy.
+        includeChildren:
+          type: boolean
+          description: Flag whether to duplicate subpages of the table of contents.
+    TableOfContentsItem:
+      type: object
+      required:
+        - title
+        - content
+      properties:
+        id:
+          type: string
+          description: The identifier of the table of contents item.
+          format: uuid
+          readOnly: true
+        slug:
+          type: string
+          description: >-
+            The URL slug for the item. If the slug is not specified, it will be
+            generated from the title field.
+          example: getting-started
+          pattern: ^[a-z0-9]+([-_.]([a-z0-9]+))*$
+          minLength: 3
+          maxLength: 260
+        title:
+          type: string
+          description: The title in the table of contents.
+          example: Getting Started
+          minLength: 3
+          maxLength: 255
+        order:
+          type: integer
+          description: >
+            The order of the item in the table of contents, starting from 0.
+            
+            If not specified when creating an entry, it will be added to the end
+            of the list.
+          example: 1
+          minimum: 0
+          writeOnly: true
+        parentId:
+          type: string
+          format: uuid
+          description: >-
+            The identifier of the parent table of contents item. If not
+            specified the item will be added at the end of the root level of the
+            tree.
+          writeOnly: true
+        children:
+          type: array
+          items:
+            $ref: '#/components/schemas/TableOfContentsItem'
+          readOnly: true
+        swaggerhubApi:
+          type: object
+          readOnly: true
+          properties:
+            private:
+              type: boolean
+              description: Indicates if the API is private in SwaggerHub.
+        content:
+          type: string
+#          $ref: '#/components/schemas/ContentReference'
+#    ContentReference:
+#      oneOf:
+#        - $ref: '#/components/schemas/MarkdownDocument'
+#        - $ref: '#/components/schemas/ApiUrl'
+#      discriminator:
+#        propertyName: type
+#        mapping:
+#          markdown: '#/components/schemas/MarkdownDocument'
+#          apiUrl: '#/components/schemas/ApiUrl'
+#    ApiUrl:
+#      type: object
+#      required:
+#        - type
+#        - url
+#      properties:
+#        type:
+#          type: string
+#          description: The type of the content.
+#          example: apiUrl
+#        url:
+#          type: string
+#          description: The URL of the API definition document. For now, this is expected to be a SwaggerHub URI.
+#          format: uri
+#          example: 'https://api.swaggerhub.com/apis/swagger-hub/user-management-api/1.2.0/swagger.json'
+#    MarkdownDocument:
+#      type: object
+#      required:
+#        - type
+#        - markdown
+#      properties:
+#        type:
+#          type: string
+#          description: The type of the content.
+#          example: markdown
+#        documentId:
+#          type: string
+#          format: uuid
+#          description: The identifier that can be used to fetch the Markdown contents from the Documents API endpoint.
+#          readOnly: true
