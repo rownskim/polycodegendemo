@@ -1,0 +1,54 @@
+components:
+  parameters:
+    portalId:
+      in: path
+      name: portalId
+      schema:
+        type: string
+      required: true
+      description: Portal UUID or subdomain
+      example: 057a079a-2644-4c17-a26f-60f80e5dcbfb
+    productId:
+      in: path
+      name: productId
+      schema:
+        type: string
+        example: b602cc2e-1057-43dd-a4f0-1f6651eb8463
+      required: true
+      description: Product UUID, or identifier in the format `portal-subdomain:product-slug`
+      example: a8f43035-a495-4282-9641-596319704e73
+    sectionId:
+      name: sectionId
+      in: path
+      required: true
+      description: Section UUID, or identifier in the format `portal-subdomain:product-slug:section-slug`
+      schema:
+        type: string
+        example: 1abee8df-a877-4231-91b8-f9f6fb3c21d6
+  schemas:
+    Operation:
+      type: object
+      properties:
+        method:
+          type: string
+          description: The HTTP or operation method described in the API definition document.
+          example: GET
+        path:
+          type: string
+          description: The operation path.
+          example: /pets
+        tag:
+          type: string
+          description: Tags described in the API definition document for the operation.
+          example: pet
+        summary:
+          type: string
+          description: The operation description specified in the API definition document.
+          example: Search pets
+        operationId:
+          type: string
+          description: The operation identifier.
+          example: findPets
+        deprecated:
+          type: boolean
+          description: Whether or not this operation is marked as deprecated in the API definition document.

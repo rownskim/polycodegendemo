@@ -1,0 +1,231 @@
+components:
+  securitySchemes:
+    SwaggerHubToken:
+      type: http
+      scheme: bearer
+      description: |
+        You can find your SwaggerHub API key found at https://app.swaggerhub.com/settings/apiKey.
+      
+        For documentation purposes each endpoint has a scope explaining what permissions are required.
+        
+        * product-consumer: Your user must have a role of Consumer or higher assigned to the product associated with
+          this endpoint, or a role of Consumer or higher assigned at organization level.
+        * product-designer: Your user must have a role of Designer assigned to the product associated with this endpoint,
+          or a role of Designer or higher assigned at organization level.
+        * organization-consumer: Your user must have a role of Consumer or higher assigned at organization level.
+        * organization-designer: Your user must have a role of Designer or higher assigned at organization level.
+        * organization-owner: Your user must have a role of Owner assigned at organization level.
+        * any-designer: Your user must have a role of Designer or higher at organization level, or a Designer role
+          in at least one portal product.
+        
+        Some endpoints limit the returned data depending on your assigned roles. Further explanation can be found in the
+        documentation of the respective endpoint.
+    # Note: only for internal API
+    ServiceToken:
+      type: http
+      scheme: bearer
+      description: |
+          The service token, token required for other microservices to call this endpoint.
+    # Note: only for admin API
+    PortalAdmin:
+      type: http
+      scheme: bearer
+      description: |
+        Your SwaggerHub API key from https://app.swaggerhub.com/settings/apiKey.
+        Only Portal admin users are allowed to use this API.
+  responses:
+    BadRequest:
+      description: |
+        The request was malformed or could not be processed. 
+        
+        Examples of `Bad Request` problem detail responses:
+
+         - [Resource already exists](https://problems-registry.smartbear.com/already-exists/)
+         - [Missing body property](https://problems-registry.smartbear.com/missing-body-property/)
+         - [Invalid body property format](https://problems-registry.smartbear.com/invalid-body-property-format/)
+         - [Invalid body property value](https://problems-registry.smartbear.com/invalid-body-property-value/)
+         - [Missing request header](https://problems-registry.smartbear.com/missing-request-header/)
+         - [Invalid request header format](https://problems-registry.smartbear.com/invalid-request-header-format/)
+         - [Missing request parameter](https://problems-registry.smartbear.com/missing-request-parameter/)         
+         - [Invalid request parameter format](https://problems-registry.smartbear.com/invalid-request-parameter-format/)
+         - [Invalid request parameter value](https://problems-registry.smartbear.com/invalid-request-parameter-value/)
+         - [Business rule violation](https://problems-registry.smartbear.com/business-rule-violation/)
+
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/Error"
+          examples:
+            missing-request-parameter:
+              value:
+                code: SB400-01
+                type: https://problems-registry.smartbear.com/missing-request-parameter
+                title: Missing request parameter
+                detail: The request is missing an expected query parameter
+                status: 400
+    AuthRequired:
+      description: Access token is not set or invalid
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/Error"
+          examples:
+            Unauthorized:
+              value:
+                code: SB401-01
+                type: about:blank
+                title: Unauthorized
+                detail: Access token not set or invalid. The requested resource could not be returned
+                status: 401
+    Forbidden:
+      description: >-
+        Access denied. User does not have the enough permissions to access this resource.
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/Error"
+          examples:
+            Forbidden:
+              value:
+                code: SB403-01
+                type: about:blank
+                title: Forbidden
+                detail: The resource could not be returned as the requestor is not authorized
+                status: 403        
+    NotFound:
+      description: The requested resource was not found.
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/Error"
+          examples:
+            Forbidden:
+              value:
+                code: SB404-01
+                type: about:blank
+                title: Not found
+                detail: The requested resource was not found
+                status: 404
+    ContentTooLarge:
+      description: Content exceeds max permitted size.
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/Error"
+          examples:
+            ContentTooLarge:
+              value:
+                code: SB413-01
+                type: about:blank
+                title: Content too large
+                detail: The content provided exceeds permitted size
+                status: 413                  
+    PortalDisabled:
+      description: | 
+        The portal is offline. 
+        
+        Possible reasons:
+        - [An admin set the portal offline](https://problems-registry.smartbear.com/service-unavailable)
+        - [License has expired](https://problems-registry.smartbear.com/license-expired)
+        - [License has been cancelled](https://problems-registry.smartbear.com/license-cancelled)
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/Error"
+          examples:
+            PortalOffline:
+              value:
+                code: SB503-01
+                "type": https://problems-registry.smartbear.com/license-expired
+                "title": License has expired
+                "detail": The service is unavailable as the license associated with your client or organization has expired.
+                          Please contact your SmartBear account manager or representative
+                "status": 503
+  headers:
+    PageLinks:
+      description: An RFC5988 list of next and previous page links.
+      schema:
+        type: string
+  parameters:
+    page:
+      name: page
+      in: query
+      schema:
+        type: integer
+        minimum: 1
+        default: 1
+      description: >-
+        The 1-based index of the page to return. If not specified, the
+        first page is returned.
+  schemas:
+    Error:
+      type: object
+      required:
+        - "type"
+        - "title"
+      properties:
+        code:
+          type: string
+          description: An API specific error code
+        type:
+          type: string
+          description: URI describing the error
+        title:
+          type: string
+          description: A human-friendly short description of the problem
+        detail:
+          type: string
+          description: A human-friendly long description of the problem
+        instance:
+          type: string
+          description: Path on which the operation was performed
+        status:
+          type: integer
+          description: HTTP-style status code
+    Link:
+      type: object
+      description: A link to a resource returned by this API
+      required:
+        - href
+      properties:
+        href:
+          type: string
+          format: url
+          description: Absolute URL of the resource
+    Page:
+      type: object
+      description: Describes the pagination details for the current result set
+      required:
+        - number
+        - page
+      properties:
+        number:
+          type: integer
+          description: The 1-based index of the page
+          example: 1
+        size:
+          type: integer
+          description: The maximum number of elements per page. _Note:_ the last page might have fewer elements.
+          example: 20
+        totalElements:
+          type: integer
+          format: int64
+          description: The total number of elements that were found
+          example: 100
+        totalPages:
+          type: integer
+          format: int64
+          description: The total number of pages
+          example: 5
+    PaginationLinks:
+      type: object
+      properties:
+        self:
+          $ref: "#/components/schemas/Link"
+          description: A link back to this list
+        next:
+          $ref: "#/components/schemas/Link"
+          description: Link to the next page (if it exists)
+        prev:
+          $ref: "#/components/schemas/Link"
+          description: Link to the previous page (if it exists)
